@@ -1,0 +1,29 @@
+# Keil MDK output
+*.o
+*.d
+*.crf
+*.lnp
+*.axf
+*.hex
+*.bin
+*.htm
+*.dep
+*.iex
+*.build_log.htm
+*.lst
+*.map
+
+# Keil user-specific
+*.uvguix.*
+
+# JLink
+JLinkLog.txt
+*.jlink
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
