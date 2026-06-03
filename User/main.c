@@ -1,37 +1,52 @@
-#include "stm32f10x.h"                  // Device header
+#include "app.h"
+#include "pwm.h"
+#include "adc.h"
 #include "led.h"
-#include "key.h"
+#include "uart.h"
+#include "beep.h"
 #include "timer.h"
 
 int main(void)
-{	
-	key_event_t key_event = KEY_NONE;
+{
+    KeyEvent_t key_event = KEY_EVENT_NONE;
+
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
+
+    Led_Init();
+    Key_Init();
+    Pwm_Init();
+	Adc_Init();
+    Beep_Init();
+    Uart1_Init();
+    Timer_Init();
 	
-    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);//设置中断组为0
-	
-	Led_Init();
-	Timer_Init();
-	Key_Init();
-	
-	while(1)
-	{
-		if(Timer_Get10msFlag())
+	App_Init();
+
+    Uart1_SendString("hello stm32\r\n");
+
+    while (1)
+    {
+        if (Timer_GetAndClear10msFlag())
+        {
+            Beep_Task10ms();
+            Led_Task10ms();
+            Key_Scan10ms();
+			App_Task10ms();
+        }
+		
+		if(Timer_GetAndClear100msFlag())
 		{
-			Timer_Clear10msFlag();
-			Key_Scan();
+			App_Task100ms();
 		}
 		
-		key_event = Get_Keyevent();
-		
-		if(key_event == KEY_SHORT)
+		if(Timer_GetAndClear500msFlag())
 		{
-			Led_Toggle(LED_BLUE);
+			App_Task500ms();
 		}
 		
-		else if(key_event == KEY_LONG)
-		{
-			Led_Off(LED_BLUE);
-	    }
-		
-	}
+        key_event = Key_GetEvent();
+		App_HandleKeyEvent(key_event);
+
+        Uart1_CmdTask();
+    }
 }

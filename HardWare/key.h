@@ -3,10 +3,10 @@
 
 typedef enum
 {
-    KEY_NONE = 0,
-    KEY_SHORT,
-    KEY_LONG
-} key_event_t;
+    KEY_EVENT_NONE = 0,
+    KEY_EVENT_SHORT,
+    KEY_EVENT_LONG
+} KeyEvent_t;
 
 typedef enum
 {
@@ -15,7 +15,7 @@ typedef enum
 } KEY;
 
 void Key_Init(void);
-void Key_Scan(void); // 10ms定时任务里扫描
-key_event_t Get_Keyevent(void);
+void Key_Scan10ms(void); // 10ms定时任务里扫描
+KeyEvent_t Key_GetEvent(void);
 
 #endif

@@ -1,5 +1,4 @@
 #include "led.h"
-#include "stm32f10x.h"                  // Device header
 
 #define LED_R_PORT GPIOB
 #define LED_G_PORT GPIOB
@@ -8,6 +7,20 @@
 #define LED_R_PIN GPIO_Pin_5
 #define LED_G_PIN GPIO_Pin_0
 #define LED_B_PIN GPIO_Pin_1
+
+typedef enum
+{
+	LED_BLINK_IDLE = 0,
+	LED_BLINK_ON,
+	LED_BLINK_OFF
+} LedBlinkState_t;
+
+static LedBlinkState_t s_blink_state = LED_BLINK_IDLE;
+static LED s_blink_led;
+static uint16_t s_blink_interval_ms = 0;
+static uint16_t s_blink_tick_ms = 0;
+static uint16_t s_blink_times = 0;
+
 
 void Led_Init(void)
 {
@@ -104,4 +117,81 @@ void Led_Toggle(LED led)
             GPIO_SetBits(LED_B_PORT,LED_B_PIN);
         }
     }    
+}
+
+void Led_BlinkStart(LED led,uint16_t interval_ms,uint16_t times)
+{
+	if(interval_ms == 0 || times == 0)
+	{
+		Led_Off(s_blink_led);
+		interval_ms = 0;
+		times = 0;
+		s_blink_tick_ms = 0;
+		s_blink_state = LED_BLINK_IDLE;
+		return;
+	}
+	
+	s_blink_led = led;
+
+	s_blink_interval_ms = interval_ms;	
+	s_blink_tick_ms = 0;
+	s_blink_times = times;
+	
+	Led_On(s_blink_led);
+	s_blink_state = LED_BLINK_ON;
+}
+
+void Led_Task10ms(void)
+{
+	if(s_blink_state == LED_BLINK_IDLE)
+	{
+		return;
+	}
+	
+	s_blink_tick_ms += 10;
+	
+	if(s_blink_tick_ms < s_blink_interval_ms)
+	{
+		return;
+	}
+	
+	s_blink_tick_ms = 0;
+	
+	switch(s_blink_state)
+	{
+		case LED_BLINK_ON:
+		{
+			Led_Off(s_blink_led);
+			s_blink_state = LED_BLINK_OFF;
+			break;
+		}
+		
+		case LED_BLINK_OFF:
+		{
+			if(s_blink_times > 0)
+			{
+				s_blink_times-- ;
+			}
+			
+			if(s_blink_times == 0)
+			{
+				Led_Off(s_blink_led);
+				s_blink_state = LED_BLINK_IDLE;
+				break;
+			}
+			else
+			{
+				Led_On(s_blink_led);
+				s_blink_state = LED_BLINK_ON;
+				break;
+			}
+		}
+		
+		default:
+		{
+			Led_Off(s_blink_led);
+			s_blink_state = LED_BLINK_IDLE;
+			break;
+		}
+	}
 }
