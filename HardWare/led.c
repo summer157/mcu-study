@@ -20,6 +20,7 @@ static LED s_blink_led;
 static uint16_t s_blink_interval_ms = 0;
 static uint16_t s_blink_tick_ms = 0;
 static uint16_t s_blink_times = 0;
+static uint8_t s_blink_infinite = 0;
 
 
 void Led_Init(void)
@@ -119,24 +120,44 @@ void Led_Toggle(LED led)
     }    
 }
 
-void Led_BlinkStart(LED led,uint16_t interval_ms,uint16_t times)
+void Led_BlinkStop(void)
 {
-	if(interval_ms == 0 || times == 0)
+	if(s_blink_state == LED_BLINK_IDLE)
 	{
-		Led_Off(s_blink_led);
-		interval_ms = 0;
-		times = 0;
-		s_blink_tick_ms = 0;
-		s_blink_state = LED_BLINK_IDLE;
 		return;
 	}
-	
-	s_blink_led = led;
 
-	s_blink_interval_ms = interval_ms;	
+	Led_Off(s_blink_led);
+	s_blink_interval_ms = 0;
 	s_blink_tick_ms = 0;
-	s_blink_times = times;
-	
+	s_blink_times = 0;
+	s_blink_infinite = 0;
+	s_blink_state = LED_BLINK_IDLE;
+}
+
+void Led_BlinkStart(LED led,uint16_t interval_ms,uint16_t times)
+{
+	if(interval_ms == 0)
+	{
+		Led_BlinkStop();
+		return;
+	}
+
+	s_blink_led = led;
+	s_blink_interval_ms = interval_ms;
+	s_blink_tick_ms = 0;
+
+	if(times == 0)
+	{
+		s_blink_infinite = 1;
+		s_blink_times = 0;
+	}
+	else
+	{
+		s_blink_infinite = 0;
+		s_blink_times = times;
+	}
+
 	Led_On(s_blink_led);
 	s_blink_state = LED_BLINK_ON;
 }
@@ -168,23 +189,28 @@ void Led_Task10ms(void)
 		
 		case LED_BLINK_OFF:
 		{
+			if(s_blink_infinite)
+			{
+				Led_On(s_blink_led);
+				s_blink_state = LED_BLINK_ON;
+				break;
+			}
+
 			if(s_blink_times > 0)
 			{
-				s_blink_times-- ;
+				s_blink_times--;
 			}
-			
+
 			if(s_blink_times == 0)
 			{
 				Led_Off(s_blink_led);
 				s_blink_state = LED_BLINK_IDLE;
 				break;
 			}
-			else
-			{
-				Led_On(s_blink_led);
-				s_blink_state = LED_BLINK_ON;
-				break;
-			}
+
+			Led_On(s_blink_led);
+			s_blink_state = LED_BLINK_ON;
+			break;
 		}
 		
 		default:

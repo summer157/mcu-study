@@ -16,5 +16,6 @@ void Led_Toggle(LED led);
 
 void Led_Task10ms(void);
 void Led_BlinkStart(LED led,uint16_t interval_ms,uint16_t times);
+void Led_BlinkStop(void);
 
 #endif 
