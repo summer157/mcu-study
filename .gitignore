@@ -1,5 +1,9 @@
 # Keil MDK output
+Output/
+Listings/
+Objects/
 *.o
+*.obj
 *.d
 *.crf
 *.lnp
@@ -12,9 +16,12 @@
 *.build_log.htm
 *.lst
 *.map
+*.sct
 
 # Keil user-specific
 *.uvguix.*
+*.uvoptx
+*.dbgconf
 
 # JLink
 JLinkLog.txt
